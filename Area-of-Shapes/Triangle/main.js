@@ -19,19 +19,23 @@ function setCoordinate(event) {
     document.getElementById(`coordinates-${clicks}`).innerHTML = `Coordinates ${clicks}: `;
 }
 
+function getPos(x, y) {
+    let canvas = document.getElementById('triangle');
+    let rect = canvas.getBoundingClientRect();
+    let cx = x - rect.left;
+    let cy = y - rect.top;
+
+    return {x: cx, y: cy};
+}
+
 function drawCoordinates(x, y) {
    let pointSize = 3;
-   let canvas = document.getElementById('triangle');
-   let rect = canvas.getBoundingClientRect();
-
-   let cx = x - rect.left;
-   let cy = y - rect.top;
-
+   let pos = getPos(x, y);
    let ctx = document.getElementById('triangle').getContext("2d");
    ctx.fillStyle = "#ff2626";
 
    ctx.beginPath();
-   ctx.arc(cx, cy, pointSize, 0, Math.PI * 2, true);
+   ctx.arc(pos.x, pos.y, pointSize, 0, Math.PI * 2, true);
    ctx.fill();
 
 }
