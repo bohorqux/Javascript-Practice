@@ -1,0 +1,16 @@
+h5 {
+    margin-top: 20%;
+}
+
+canvas {
+    margin-top: 50%;
+    border: 3px solid black;
+}
+
+#coordinates-1 {
+    margin-top: 14%;
+}
+.coord {
+    margin-top: 5%;
+    margin-bottom: 5%;
+}
