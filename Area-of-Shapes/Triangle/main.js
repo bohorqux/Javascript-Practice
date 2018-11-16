@@ -13,6 +13,7 @@ let LinePositions = {
 }
 
 let recentPos = undefined;
+let triangleDrawn = false;
 
 // - - - - - - - - - - - - - - - - - - - - OBJECT MEMORY FUNCTIONS  - - - - - - - - - - - - - - - - - - - - 
 function clearStorage() {
@@ -45,29 +46,38 @@ function clearCanvas() {
 }
 
 function canvasActive(event) {
-    if (clicks == 4) { //When the 3 points are created, don't clear anything on the screen
-        return;
+    if (clicks < 4) { 
+        clearCanvas();
+
+        drawAllDots();
+        drawAllLines(1, "gray");
+
+        showCoordinates(event);
+        showLine(event, recentPos);
+    } else {
+        triangleDrawn = true;
     }
+}
+
+function resetCanvas() {
+    clicks = 1;
+    triangleDrawn = false;
+    clearStorage();
     clearCanvas();
 
-    drawAllDots();
-    drawAllLines(1, "gray");
+    for (i=1; i<4; i++) {
+        document.getElementById(`coordinates-${i}`).innerHTML = "";
+    }
+    document.getElementById('resetButton').innerHTML = "";
+    document.getElementById('area').innerHTML = "";
 
-    showCoordinates(event);
-    showLine(event, recentPos);
 }
 
 function canvasInactive() {
     if (clicks == 4) {
         return;
     }
-
-    for (i=1; i<4; i++) {
-        document.getElementById(`coordinates-${i}`).innerHTML = "";
-    }
-    clicks = 1;
-    clearStorage();
-    clearCanvas();
+    resetCanvas();
 }
 // - - - - - - - - - - - - - - - - - - - - CANVAS FACING FUNCTIONS - - - - - - - - - - - - - - - - - - - - 
 
@@ -89,10 +99,12 @@ function setCoordinate(event) {
         addToStorage([recentPos[0], recentPos[1], xy[0], xy[1]], LinePositions);
             if (clicks == 4) {
                 addToStorage([Positions.coordinate1[0], Positions.coordinate1[1], xy[0], xy[1]], LinePositions);
-                drawTriangle();
+                drawTriangle("black", "lightblue", 5);
+                document.getElementById('resetButton').innerHTML = "<button class='btn btn-primary' onclick='resetCanvas()'>Reset?</button>";
+                document.getElementById('area').innerHTML = `<h5>${calculateArea(LinePositions)}</h5>`;
                 return;
             }
-        drawAllLines("gray");
+        drawAllLines(1, "gray");
     }
 
     recentPos = xy;
@@ -103,9 +115,34 @@ function getPos(x, y) {
     let rect = canvas.getBoundingClientRect();
     let cx = x - rect.left;
     let cy = y - rect.top;
-
     return [cx, cy];
 }
+
+function calculateDistance(line) {
+    return Math.sqrt(Math.pow(line[1] - line[0], 2) + Math.pow(line[3] - line[2], 2));
+}
+
+function calculateArea(Lines) {
+    let distances = [];
+
+    for (let curr_line in Lines) {
+        distances.push(calculateDistance(Lines[curr_line]));
+    }
+
+    let s = distances.reduce(function(total, num) {
+        return total + num;
+    });
+
+    s /= 2;
+
+    s_a = s-distances[0];
+    s_b = s-distances[1];
+    s_c = s-distances[2];
+
+    let area = Math.sqrt(s*s_a*s_b*s_c);
+    return Math.trunc(area);
+}
+
 // - - - - - - - - - - - - - - - - - - - -  COORDINATE FUNCTIONS - - - - - - - - - - - - - - - - - - - - 
 
 // - - - - - - - - - - - - - - - - - - - -  MOUSEOVER FUNCTIONS - - - - - - - - - - - - - - - - - - - - 
@@ -126,8 +163,8 @@ function showLine(cursor, xy) {
 
     drawLine(cursor_xy[0], cursor_xy[1], xy[0], xy[1], 1, "gray");
 
-    if (clicks == 3) {
-        drawLine(cursor_xy[0], cursor_xy[1], Positions.coordinate1[0], Positions.coordinate1[1]);
+    if (clicks == 3) { //showing line that completes triangle, not setting it yet.
+        drawLine(cursor_xy[0], cursor_xy[1], Positions.coordinate1[0], Positions.coordinate1[1], 1, "gray");
     }
 }
 // - - - - - - - - - - - - - - - - - - - -  MOUSEOVER FUNCTIONS - - - - - - - - - - - - - - - - - - - - 
@@ -172,7 +209,7 @@ function drawAllLines(width, style) {
     }
 }
 
-function drawTriangle() {
+function drawTriangle(stroke, fill, strokeWidth) {
     let canvas = document.getElementById('triangle');
     let ctx = canvas.getContext('2d');
 
@@ -182,11 +219,11 @@ function drawTriangle() {
     ctx.lineTo(Positions.coordinate3[0], Positions.coordinate3[1]);
     ctx.closePath();
 
-    ctx.lineWidth = 5;
-    ctx.strokeStyle = "black";
+    ctx.lineWidth = strokeWidth;
+    ctx.strokeStyle = stroke;
     ctx.stroke();
 
-    ctx.fillStyle = "lightblue";
+    ctx.fillStyle = fill;
     ctx.fill();
 }
 // - - - - - - - - - - - - - - - - - - - - DRAWING FUNCTIONS - - - - - - - - - - - - - - - - - - - - 
