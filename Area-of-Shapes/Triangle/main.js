@@ -44,10 +44,10 @@ let Points = {
     store: function(point) {
         for (let key in this) {
             if (typeof this[key] == 'undefined') {
-                this[key] = point;
+                Points[key] = point;
                 break;
             }
-        }
+        }        
     }
 }
 
@@ -59,22 +59,22 @@ let Triangle = {
     area: function () {
         let s = 0;
         for (let side in this) {
-            if (typeof this[side] == 'Line') {
+            if (this[side].constructor.name == 'Line') {
                 s += this[side].distance() * 0.5;
             }
-            let s_a = s-this.sideA.distance();
-            let s_b = s-this.sideB.distance();
-            let s_c = s-this.sideC.distance();
-
-            let a = Math.sqrt(s*s_a*s_b*s_c);
-            return Math.trunc(a);
         }
+        let s_a = s-this.sideA.distance();
+        let s_b = s-this.sideB.distance();
+        let s_c = s-this.sideC.distance();
 
+        let a = Math.sqrt(s*s_a*s_b*s_c);
+        return Math.trunc(a);
     },
     store: function(line) {
         for (let key in this) {
             if (typeof this[key] == 'undefined') {
                 this[key] = line;
+                break;
             }
         }
     },
@@ -82,7 +82,7 @@ let Triangle = {
         keys = 0;
         for (let key in this) {
             if (typeof this[key] != 'function') {
-                console.log(`Reset ${keys} key[s] from Triangle object`);
+                keys++;
                 this[key] = undefined;
             }
         }
@@ -131,7 +131,8 @@ function resetCanvas() {
 }
 
 function canvasInactive() {
-    if (clicks == 4) {
+    if (clicks >= 4) {
+        clicks = 1;
         return;
     }
     resetCanvas();
@@ -141,26 +142,21 @@ function canvasInactive() {
 // - - - - - - - - - - - - - - - - - - - -  COORDINATE FUNCTIONS - - - - - - - - - - - - - - - - - - - -  
 function setCoordinate(event) {
     let pointClicked = new Point(event.clientX, event.clientY);
+    Points.store(pointClicked);
     if (clicks < 3) {
         let point = `Coordinate ${clicks}: (${pointClicked.canvas_x}, ${pointClicked.canvas_y})`;
         document.getElementById(`coordinates-${clicks}`).innerHTML = point;
         document.getElementById(`coordinates-${clicks+1}`).innerHTML = `Coordinate ${clicks+1}: `;
     }
-
-    Points.store(pointClicked);
     drawAllPoints();
     clicks++;
 
     if (clicks > 2) {
-        //addToStorage([recentPoint.x, recentPoint.y, xy[0], xy[1]], Triangle);
         let line = new Line(recentPoint, pointClicked);
         Triangle.store(line);
-        console.log(Triangle);
             if (clicks == 4) {
-                //addToStorage([Points.point1[0], Points.point1[1], xy[0], xy[1]], Triangle);
                 let line2 = new Line(Points.point1, pointClicked);
                 Triangle.store(line2);
-                console.log(Triangle);
                 drawTriangle("black", "lightblue", 5);
                 document.getElementById('resetButton').innerHTML = "<button class='btn btn-primary' onclick='resetCanvas()'>Reset?</button>";
                 document.getElementById('area').innerHTML = `<h5>${Triangle.area()}</h5>`;
