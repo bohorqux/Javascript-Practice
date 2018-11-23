@@ -33,6 +33,7 @@ let Points = {
     point1: undefined,
     point2: undefined,
     point3: undefined,
+    recent: undefined,
 
     clear: function() {
         for (let key in this) {
@@ -43,11 +44,12 @@ let Points = {
     },
     store: function(point) {
         for (let key in this) {
-            if (typeof this[key] == 'undefined') {
-                Points[key] = point;
+            if (typeof this[key] == 'undefined' && key != 'recent') {
+                this[key] = point;
+                this.recent = point; //NO IDEA WHY THIS IS HAS TO BE REFERENCED DIFFERENTLY
                 break;
             }
-        }        
+        }
     }
 }
 
@@ -56,6 +58,14 @@ let Triangle = {
     sideB: undefined,
     sideC: undefined,
 
+    isDrawn: function() {
+        for (let side in this) {
+            if (typeof this[side] == 'undefined') {
+                return false;
+            }
+        }
+        return true;
+    },
     area: function () {
         let s = 0;
         for (let side in this) {
@@ -90,7 +100,6 @@ let Triangle = {
 }
 
 let recentPoint = new Point(undefined, undefined);
-let triangleDrawn = false;
 
 function clearStorage() {
     Triangle.clear();
@@ -98,49 +107,30 @@ function clearStorage() {
     recentPoint = new Point(undefined, undefined);
     clicks = 1;
 }
-// - - - - - - - - - - - - - - - - - - - -  CANVAS FACING FUNCTIONS - - - - - - - - - - - - - - - - - - - - 
-function clearCanvas() {
-    let canvas = document.getElementById('triangle');
-    let ctx = canvas.getContext("2d");
-    ctx.clearRect(0, 0, canvas.width, canvas.height);
-}
-
-function canvasActive(event) {
-    if (clicks < 4) { 
-        clearCanvas();
-        drawAllPoints();
-        drawAllLines(1, "gray");
+// - - - - - - - - - - - - - - - - - - - -  EVENT LISTENERS - - - - - - - - - - - - - - - - - - - - - - - - 
+document.getElementById('triangle').addEventListener('mousemove', function(event) {
+    if (!Triangle.isDrawn()) {
+        clearCanvas()
         showPoint(event);
         showLine(event, recentPoint);
-    } else {
-        triangleDrawn = true;
+        drawAllPoints();
+        drawAllLines(1, "gray");
     }
-}
+});
 
-function resetCanvas() {
-    triangleDrawn = false;
-    clearStorage();
-    clearCanvas();
-
-    for (i=1; i<4; i++) {
-        document.getElementById(`coordinates-${i}`).innerHTML = "";
+document.getElementById('triangle').addEventListener('mouseout', function() {
+    if (!Triangle.isDrawn()) {
+        for (i=1; i<4; i++) {
+            document.getElementById(`coordinates-${i}`).innerHTML = "";
+        }
+        clearStorage();
+        clearCanvas();
+        document.getElementById('resetButton').innerHTML = "";
+        document.getElementById('area').innerHTML = "";
     }
-    document.getElementById('resetButton').innerHTML = "";
-    document.getElementById('area').innerHTML = "";
+});
 
-}
-
-function canvasInactive() {
-    if (clicks >= 4) {
-        clicks = 1;
-        return;
-    }
-    resetCanvas();
-}
-// - - - - - - - - - - - - - - - - - - - - CANVAS FACING FUNCTIONS - - - - - - - - - - - - - - - - - - - - 
-
-// - - - - - - - - - - - - - - - - - - - -  COORDINATE FUNCTIONS - - - - - - - - - - - - - - - - - - - -  
-function setCoordinate(event) {
+document.getElementById('triangle').addEventListener('click', function(event) {
     let pointClicked = new Point(event.clientX, event.clientY);
     Points.store(pointClicked);
     if (clicks < 3) {
@@ -158,7 +148,7 @@ function setCoordinate(event) {
                 let line2 = new Line(Points.point1, pointClicked);
                 Triangle.store(line2);
                 drawTriangle("black", "lightblue", 5);
-                document.getElementById('resetButton').innerHTML = "<button class='btn btn-primary' onclick='resetCanvas()'>Reset?</button>";
+                document.getElementById('resetButton').innerHTML = "<button class='btn btn-primary' onclick='clearCanvas(); clearStorage();'>Reset?</button>";
                 document.getElementById('area').innerHTML = `<h5>${Triangle.area()}</h5>`;
                 return;
             }
@@ -166,11 +156,17 @@ function setCoordinate(event) {
     }
 
     recentPoint = new Point(pointClicked.window_x, pointClicked.window_y);
+});
+// - - - - - - - - - - - - - - - - - - - -  EVENT LISTENERS - - - - - - - - - - - - - - - - - - - - - - - - 
+
+
+// - - - - - - - - - - - - - - - - - - - -  CANVAS FACING FUNCTIONS - - - - - - - - - - - - - - - - - - - - 
+function clearCanvas() {
+    let canvas = document.getElementById('triangle');
+    let ctx = canvas.getContext("2d");
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
 }
-
-
-
-// - - - - - - - - - - - - - - - - - - - -  COORDINATE FUNCTIONS - - - - - - - - - - - - - - - - - - - - 
+// - - - - - - - - - - - - - - - - - - - - CANVAS FACING FUNCTIONS - - - - - - - - - - - - - - - - - - - - 
 
 // - - - - - - - - - - - - - - - - - - - -  MOUSEOVER FUNCTIONS - - - - - - - - - - - - - - - - - - - - 
 function showPoint(event) {
