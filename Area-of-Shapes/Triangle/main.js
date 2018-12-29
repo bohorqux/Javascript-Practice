@@ -33,7 +33,7 @@ let Points = {
     point1: undefined,
     point2: undefined,
     point3: undefined,
-    recent: undefined,
+    recent: {point: undefined, key: undefined},
 
     clear: function() {
         for (let key in this) {
@@ -41,12 +41,14 @@ let Points = {
                 this[key] = undefined;
             }
         }
+        this.recent = {point: undefined, key: undefined};
     },
     store: function(point) {
         for (let key in this) {
             if (typeof this[key] == 'undefined' && key != 'recent') {
                 this[key] = point;
-                this.recent = point; //NO IDEA WHY THIS IS HAS TO BE REFERENCED DIFFERENTLY
+                this.recent.point = point; //NO IDEA WHY THIS IS HAS TO BE REFERENCED DIFFERENTLY
+                this.recent.key = key;
                 break;
             }
         }
@@ -106,6 +108,9 @@ function clearStorage() {
     Points.clear();
     recentPoint = new Point(undefined, undefined);
     clicks = 1;
+    for (let i = 1; i < 4; i++) {
+        document.getElementById(`coordinates-${i}`).innerHTML = "";
+    }
 }
 // - - - - - - - - - - - - - - - - - - - -  EVENT LISTENERS - - - - - - - - - - - - - - - - - - - - - - - - 
 document.getElementById('triangle').addEventListener('mousemove', function(event) {
@@ -120,9 +125,6 @@ document.getElementById('triangle').addEventListener('mousemove', function(event
 
 document.getElementById('triangle').addEventListener('mouseout', function() {
     if (!Triangle.isDrawn()) {
-        for (i=1; i<4; i++) {
-            document.getElementById(`coordinates-${i}`).innerHTML = "";
-        }
         clearStorage();
         clearCanvas();
         document.getElementById('resetButton').innerHTML = "";
